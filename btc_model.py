@@ -3,7 +3,7 @@ from utils.transformer_modules import _gen_timing_signal, _gen_bias_mask
 from utils.hparams import HParams
 
 # use_cuda = torch.cuda.is_available()
-use_cuda = False
+use_cuda = False # TO DO :- make this a cmd line argument
 
 class self_attention_block(nn.Module):
     def __init__(self, hidden_size, total_key_depth, total_value_depth, filter_size, num_heads,

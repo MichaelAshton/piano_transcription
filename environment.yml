@@ -3,12 +3,12 @@ name: piano
 channels:
 - pytorch
 - defaults
+- conda-forge
 dependencies:
 - pytorch
 - jupyter
 - ipyparallel
 - fluidsynth
-- ffmpeg
 - pysoundfile
 - pip
 - pip:

@@ -1,4 +1,14 @@
 from __future__ import unicode_literals
+
+from textwrap import dedent
+import dash_player
+import dash
+import dash_html_components as html
+import dash_core_components as dcc
+from dash.dependencies import Input, Output, State
+import glob
+from utils import logger
+from predict_chords import *
 import youtube_dl
 
 save_dir = 'mp3s'
@@ -12,17 +22,7 @@ ydl_opts = {
     'outtmpl': '{}/%(title)s.%(ext)s'.format(save_dir),
 }
 
-from textwrap import dedent
 
-import dash_player
-import dash
-import dash_html_components as html
-import dash_core_components as dcc
-from dash.dependencies import Input, Output, State
-
-import glob
-
-from predict_chords import *
 
 app = dash.Dash(__name__)
 server = app.server
@@ -192,11 +192,11 @@ def update_playbackRate(value):
               [State('input-url', 'value')])
 def update_url(n_clicks, value):
 
-    print(value)
+    logger.info(value)
 
     if 'youtube' in value:
 
-        print('is a youtube link')
+        logger.info('is a youtube link')
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             # ydl.download([value])
@@ -211,7 +211,7 @@ def update_url(n_clicks, value):
 
     else:
 
-        print('not a youtube link')
+        logger.info('not a youtube link')
 
         filename = value    
     

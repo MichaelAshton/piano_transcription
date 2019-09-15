@@ -13,14 +13,18 @@ import video
 
 logger.logging_verbosity(1)
 # use_cuda = torch.cuda.is_available()
-use_cuda = False
+use_cuda = False # O DO :- make this a cmd line argument
 device = torch.device("cuda" if use_cuda else "cpu")
 
 config = HParams.load("run_config.yaml")
 
+
 def run(mp3_file_path):
 
-    print('run function mp3_file_path argument : {}'.format(mp3_file_path))
+    os.makedirs('static', exist_ok=True)
+
+
+    logger.info('run function mp3_file_path argument : {}'.format(mp3_file_path))
 
     voca = False # True means large vocabulary label type
     if voca == True:
@@ -44,24 +48,15 @@ def run(mp3_file_path):
         model.load_state_dict(checkpoint['model'])
         logger.info("restore model")
 
-    # Load mp3
-    # example mp3 file is free music audio from http://www.freemusicarchive.org/
-    # Monplaisir_-_01_-_Everything_is_true
-    # mp3_file_path = glob.glob('./*.mp3')[0]
-
-    base_path, song_name = os.path.split(mp3_file_path)
-
-    
+    # clean mp3 filename
+    base_path, song_name = os.path.split(mp3_file_path)    
     new_name = "".join(x for x in song_name[:-4] if x.isalnum())
     new_path = os.path.join(base_path, new_name + '.mp3')
-
-    shutil.move(mp3_file_path, new_path)
-    
+    shutil.move(mp3_file_path, new_path)    
     filename = new_path[:-4]
-    print('cleaned filename : {}'.format(filename))
-    # filename = 'stereo_hearts'
-    # mp3_file_path = 'test/{}.mp3'.format(filename)
-    # mp3_file_path = './{}.mp3'.format(filename)
+    logger.info('cleaned filename : {}'.format(filename))
+
+    # load mp3 and get features
     feature, feature_per_second, song_length_second = audio_file_to_features(new_path, config)
     logger.info("audio file loaded and feature computation success")
 
@@ -110,16 +105,19 @@ def run(mp3_file_path):
 
     logger.info("label file saved")
 
-
-    print('read in label file to pandas dataframe')
+    # read in lab file into dataframe
+    logger.info('read in label file to pandas dataframe')
     df = pd.read_csv('./{}.lab'.format(filename), header=None, delimiter=' ')
 
     df.columns = ['start', 'stop', 'chord']
 
+    # calculate chord duration
     df['duration'] = df.stop - df.start
 
+    # discard the first and last non chords
     df = df.iloc[1:-2].copy(deep=True)
 
+    # set any non-chords to the previous chord
     for index in df.index.values:
     
         chord_ = df.at[index, 'chord']
@@ -130,50 +128,67 @@ def run(mp3_file_path):
             df.at[index-1, 'stop'] = timestamp
             df.drop(index, inplace=True)
 
-    print('start processing the chords into midi')
+    logger.info('start processing the chords into midi')
     try:
         s1 = stream.Stream()
         s1.append(chord.Chord(["C4","G4","E-5"]))
         for index in df.index.values[1:20]:#[1:-2]:
-        #     print(index)
             chord_ = df.at[index, 'chord']
             kind = 'major'
             if ':min' in chord_:
                 kind = 'minor'
             chord_ = chord_.split(':min')[0]
+            # multiply duration by 2. Don't know why this works but it does
             duration_ = 2 * df.at[index, 'duration']
-            # duration_ = df.at[index, 'duration']
             chord21 = harmony.ChordSymbol(root=chord_, kind = kind, duration=duration_)
             chord21.writeAsChord = True
             s1.append(chord21)
 
     except Exception as e:
-        print(e)
+        logger.info(e)
 
-    print('complete')
+    logger.info('complete')
 
-    print('save midi to disk')
+    logger.info('save midi to disk')
     fp = s1.write('midi', fp='{}.mid'.format(filename))
 
+    # read in midi
     sheet = midi.Midi('{}.mid'.format(filename))
+    # get the video representation
     clip = video.midi_videoclip(sheet)
+    # save the video without audio
     clip.write_videofile('{}.webm'.format(filename), codec='libvpx', fps=20)
 
+    os.makedirs('/usr/share/sounds', exist_ok=True)
+    os.makedirs('/usr/share/sounds/sf2', exist_ok=True)
+
+    # download the libsynth soundfont if it doesn't exist
+    if not os.path.exists('/usr/share/sounds/sf2/FluidR3_GM.sf2'):
+    
+        cmd = 'wget -O /usr/share/sounds/sf2/FluidR3_GM.sf2 https://github.com/urish/cinto/raw/master/media/FluidR3%20GM.sf2'
+        subprocess.call(cmd, shell=True) 
+
+    # load the soundfont
     fs = FluidSynth('/usr/share/sounds/sf2/FluidR3_GM.sf2') # arch
+
+    # convert the midi to audio
     fs.midi_to_audio('{}.mid'.format(filename), '{}.wav'.format(filename))
 
+    # combine the audio and video
     cmd = 'ffmpeg -y -i {}.wav  -r 30 -i {}.webm  -filter:a aresample=async=1 -c:a flac -c:v copy {}.mkv'.format(filename, filename, filename)
     subprocess.call(cmd, shell=True)                                     # "Muxing Done
-    print('Muxing Done')
 
+    # delay the audio by 4% (this aligns the audio to the video)
     cmd = 'ffmpeg -i {}.mkv -filter:a "atempo=0.96" -vn -y {}.wav'.format(filename, filename)
     subprocess.call(cmd, shell=True)
 
+    # strip the path to get the filename
     filename_only = os.path.splitext(os.path.basename(filename))[0]
 
+    # combine the video and the delayed audio
     cmd = 'ffmpeg -y -i {}.wav  -r 30 -i {}.webm  -filter:a aresample=async=1 -c:a flac -c:v copy static/{}.mkv'.format(filename, filename, filename_only)
     subprocess.call(cmd, shell=True)                                     # "Muxing Done
-    print('Muxing Done')
+    logger.info('Muxing Done')
 
     return 'static/{}.mkv'.format(filename_only)
 
