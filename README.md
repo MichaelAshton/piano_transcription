@@ -25,6 +25,7 @@ conda env update -f environment.yml
 source activate piano
 
 python app.py
+```
 
 open the link provided (i.e http://127.0.0.1:8050)
 
