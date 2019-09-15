@@ -5,7 +5,7 @@ Using Deep Learning to estimate chords in songs
 This project aims at generating automated piano tutorials from songs. Once a youtube link is provided, a bidirectional transformer model predicts the chords, the predicted chords are converted to midi and a video is generated showing the chords' progression in a synthesia-like format. The uploaded song is trimmed to the first ~40 seconds to constrain the execution time to under 2 minutes.
 
 
-## Installation
+## Installation (ubuntu)
 
 1. Install anaconda: https://www.anaconda.com/distribution/  (alternative you can install miniconda)
 
