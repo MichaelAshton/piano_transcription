@@ -28,8 +28,9 @@ python app.py
 
 open the link provided (i.e http://127.0.0.1:8050)
 
-3. TO DO:
-    - Play the original song alongside the generated chords video
-    - Set the chords to start playing after ~2 seconds instead of immediately the video starts
-    - Incorporate prediction of the singing voice to be played using the right hand
+## TO DO:
+
+ 1. Play the original song alongside the generated chords video
+ 2. Set the chords to start playing after ~2 seconds instead of immediately the video starts
+ 3. Incorporate prediction of the singing voice to be played using the right hand
 
