@@ -13,8 +13,7 @@ This project aims at generating automated piano tutorials from songs. Once a you
 2. Run:  
 
 ```bash
-sudo apt-get install libsndfile1
-sudo apt install ffmpeg
+sudo apt-get install libsndfile1 ffmpeg libcairo2
 
 git clone https://github.com/MichaelAshton/piano_transcription.git
 
