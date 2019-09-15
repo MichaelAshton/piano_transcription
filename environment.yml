@@ -1,0 +1,27 @@
+# To Run: conda env create -f environment.yml
+name: piano
+channels:
+- pytorch
+- defaults
+dependencies:
+- pytorch
+- jupyter
+- ipyparallel
+- pip
+- pip:
+  - youtube_dl==2019.9.1
+  - music21==5.7.0
+  - midi2audio==0.1.1
+  - mido==1.2.9
+  - intervaltree==3.0.2
+  - Flask==1.1.1
+  - dash==1.2.0
+  - dash_player==0.0.1
+  - pyyaml==5.1.2
+  - librosa==0.7.0
+  - mir_eval==0.5
+  - pandas==0.25.1
+  - gizeh==0.1.11
+  - moviepy==1.0.0
+  - matplotlib==3.1.1
+  - ffmpeg
