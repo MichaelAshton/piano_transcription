@@ -159,17 +159,16 @@ def run(mp3_file_path):
     # save the video without audio
     clip.write_videofile('{}.webm'.format(filename), codec='libvpx', fps=20)
 
-    os.makedirs('/usr/share/sounds', exist_ok=True)
-    os.makedirs('/usr/share/sounds/sf2', exist_ok=True)
+    os.makedirs('sf2', exist_ok=True)
 
     # download the libsynth soundfont if it doesn't exist
-    if not os.path.exists('/usr/share/sounds/sf2/FluidR3_GM.sf2'):
+    if not os.path.exists('sf2/FluidR3_GM.sf2'):
     
-        cmd = 'wget -O /usr/share/sounds/sf2/FluidR3_GM.sf2 https://github.com/urish/cinto/raw/master/media/FluidR3%20GM.sf2'
+        cmd = 'wget -O sf2/FluidR3_GM.sf2 https://github.com/urish/cinto/raw/master/media/FluidR3%20GM.sf2'
         subprocess.call(cmd, shell=True) 
 
     # load the soundfont
-    fs = FluidSynth('/usr/share/sounds/sf2/FluidR3_GM.sf2') # arch
+    fs = FluidSynth('sf2/FluidR3_GM.sf2') # arch
 
     # convert the midi to audio
     fs.midi_to_audio('{}.mid'.format(filename), '{}.wav'.format(filename))
